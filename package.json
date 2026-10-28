@@ -1,0 +1,27 @@
+{
+  "name": "tolc-watch",
+  "version": "1.0.0",
+  "description": "Watch testcisia.it TOLC CEnT-S calendar and alert when test dates are released",
+  "main": "check-tolc.js",
+  "type": "module",
+  "scripts": {
+    "start": "node check-tolc.js",
+    "test:notify": "node check-tolc.js --test"
+  },
+  "keywords": [
+    "tolc",
+    "cisia",
+    "watch",
+    "alert",
+    "pushover",
+    "callmebot"
+  ],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0"
+  }
+}
