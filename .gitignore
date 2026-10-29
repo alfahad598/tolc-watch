@@ -1,2 +1,6 @@
 node_modules
 .env
+
+# Telegram notification delivery state (runtime, regenerated each run)
+telegram-queue.json
+telegram-queue.lock

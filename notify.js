@@ -1,3 +1,12 @@
+// Telegram Bot: POST https://api.telegram.org/bot<TOKEN>/sendMessage
+// Success = HTTP 200 and JSON ok === true. Sent to every allowed chat ID
+// individually; one recipient's failure never blocks another.
+import { sendTelegram, telegramEnabled as telegramConfigured } from './telegram.js';
+
+export function telegramEnabled() {
+  return telegramConfigured();
+}
+
 // Pushover: POST https://api.pushover.net/1/messages.json
 // Success = HTTP 200 and JSON status === 1.
 export function pushoverEnabled() {
@@ -78,10 +87,13 @@ export async function sendNotification(text, priority, options = {}) {
   if (callmebotEnabled()) {
     calls.push(sendCallmebot({ text }));
   }
+  if (telegramEnabled()) {
+    calls.push(sendTelegram({ title, message: text, url, priority }));
+  }
 
   if (calls.length === 0) {
     console.error(
-      '[notify] No notification provider configured. Set PUSHOVER_TOKEN/PUSHOVER_USER and/or CALLMEBOT_PHONE/CALLMEBOT_APIKEY.',
+      '[notify] No notification provider configured. Set PUSHOVER_TOKEN/PUSHOVER_USER and/or CALLMEBOT_PHONE/CALLMEBOT_APIKEY and/or TELEGRAM_BOT_TOKEN/TELEGRAM_ALLOWED_CHAT_IDS.',
     );
     return false;
   }

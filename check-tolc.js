@@ -5,6 +5,7 @@ import { load } from 'cheerio';
 import { createHash } from 'crypto';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { sendNotification } from './notify.js';
+import { processTelegramQueue } from './telegram.js';
 
 const URL = 'https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
 const START_MARKER = 'CALENDARIO ISCRIZIONI APERTE';
@@ -111,11 +112,14 @@ async function main() {
     const ok = await sendNotification(
       'TOLC Watch test notification — this is only a test.',
       0,
-      { title: 'TOLC Watch test', url: URL },
+      { title: 'TOLC Watch test', url: URL, force: true },
     );
     console.log(`--test: ${ok ? 'at least one provider succeeded' : 'no provider succeeded/configured'}`);
     process.exit(ok ? 0 : 1);
   }
+
+  // ---- retry pending Telegram notifications (crash / restart recovery) ----
+  await processTelegramQueue();
 
   // ---- fetch the page ----
   let status;

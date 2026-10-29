@@ -43,6 +43,9 @@ jobs:
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
           CALLMEBOT_PHONE: ${{ secrets.CALLMEBOT_PHONE }}
           CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ALLOWED_CHAT_IDS: ${{ secrets.TELEGRAM_ALLOWED_CHAT_IDS }}
+          TELEGRAM_NOTIFICATIONS_ENABLED: ${{ secrets.TELEGRAM_NOTIFICATIONS_ENABLED }}
         run: |
           if [ "${{ github.event.inputs.force_alert }}" = "true" ]; then
             node check-tolc.js --force-alert
