@@ -136,6 +136,11 @@ function acquireLock() {
       const mtime = statSync(LOCK_FILE).mtimeMs;
       if (Date.now() - mtime > LOCK_STALE_MS) {
         try {
+          unlinkSync(LOCK_FILE);
+        } catch (_) {
+          return false;
+        }
+        try {
           writeFileSync(
             LOCK_FILE,
             JSON.stringify({ pid: process.pid, startedAt: now() }),
@@ -380,13 +385,15 @@ export async function sendTelegram(options = {}) {
     };
     queue.entries.push(entry);
   } else {
-    // Retry an earlier incomplete delivery on a subsequent run.
+    // Retry an earlier incomplete delivery on a subsequent run. With force,
+    // reset every recipient so an already-delivered message is sent again.
     for (const recipient of entry.recipients) {
-      if (recipient.status !== 'sent' && !recipient.permanent) {
+      if (force || (recipient.status !== 'sent' && !recipient.permanent)) {
         recipient.status = 'pending';
         recipient.attempts = 0;
         recipient.lastError = null;
         delete recipient.permanent;
+        delete recipient.sentAt;
       }
     }
     entry.updatedAt = now();
@@ -440,7 +447,7 @@ export function getTelegramStatus() {
   }
   const last = entries
     .slice()
-    .sort((a, b) => (a.updatedAt || 0) < (b.updatedAt || 0) ? 1 : -1)[0];
+    .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))[0];
   const token = getBotToken();
   return {
     enabled: telegramEnabled(),

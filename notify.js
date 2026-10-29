@@ -2,9 +2,15 @@
 // Success = HTTP 200 and JSON ok === true. Sent to every allowed chat ID
 // individually; one recipient's failure never blocks another.
 import { sendTelegram, telegramEnabled as telegramConfigured } from './telegram.js';
+import { sendEmail, emailEnabled as emailConfigured } from './email.js';
 
 export function telegramEnabled() {
   return telegramConfigured();
+}
+
+// Gmail SMTP: nodemailer over smtp.gmail.com:465 (see email.js).
+export function emailEnabled() {
+  return emailConfigured();
 }
 
 // Pushover: POST https://api.pushover.net/1/messages.json
@@ -77,9 +83,14 @@ export async function sendCallmebot({ text }) {
   return ok;
 }
 
+// True when at least one notifier has the credentials it needs.
+export function hasNotificationProvider() {
+  return pushoverEnabled() || callmebotEnabled() || telegramEnabled() || emailEnabled();
+}
+
 // Send to all enabled providers in parallel. Returns true if at least one succeeded.
 export async function sendNotification(text, priority, options = {}) {
-  const { title = 'TOLC Watch', url } = options;
+  const { title = 'TOLC Watch', url, force = false } = options;
   const calls = [];
   if (pushoverEnabled()) {
     calls.push(sendPushover({ title, message: text, url, priority }));
@@ -88,12 +99,15 @@ export async function sendNotification(text, priority, options = {}) {
     calls.push(sendCallmebot({ text }));
   }
   if (telegramEnabled()) {
-    calls.push(sendTelegram({ title, message: text, url, priority }));
+    calls.push(sendTelegram({ title, message: text, url, priority, force }));
+  }
+  if (emailEnabled()) {
+    calls.push(sendEmail({ title, message: text, url, force }));
   }
 
   if (calls.length === 0) {
     console.error(
-      '[notify] No notification provider configured. Set PUSHOVER_TOKEN/PUSHOVER_USER and/or CALLMEBOT_PHONE/CALLMEBOT_APIKEY and/or TELEGRAM_BOT_TOKEN/TELEGRAM_ALLOWED_CHAT_IDS.',
+      '[notify] No notification provider configured. Set PUSHOVER_TOKEN/PUSHOVER_USER and/or CALLMEBOT_PHONE/CALLMEBOT_APIKEY and/or TELEGRAM_BOT_TOKEN/TELEGRAM_ALLOWED_CHAT_IDS and/or SMTP_USER/SMTP_PASSWORD/EMAIL_RECIPIENTS.',
     );
     return false;
   }

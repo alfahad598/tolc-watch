@@ -2,7 +2,7 @@ name: TOLC Watch
 
 on:
   schedule:
-    - cron: '*/1 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       force_alert:
@@ -11,8 +11,12 @@ on:
         default: false
       test_notification:
         type: boolean
-        description: 'Send a Telegram test notification on every run (default: enabled for testing)'
-        default: true
+        description: 'Send a test notification instead of checking the website (default: off)'
+        default: false
+      test_email:
+        type: boolean
+        description: 'Send a test email via Gmail SMTP instead of checking the website (default: off)'
+        default: false
 
 permissions:
   contents: write
@@ -51,24 +55,32 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_ALLOWED_CHAT_IDS: ${{ secrets.TELEGRAM_ALLOWED_CHAT_IDS }}
           TELEGRAM_NOTIFICATIONS_ENABLED: ${{ secrets.TELEGRAM_NOTIFICATIONS_ENABLED }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
         run: |
           if [ "${{ github.event.inputs.force_alert }}" = "true" ]; then
             node check-tolc.js --force-alert
+          elif [ "${{ github.event.inputs.test_email }}" = "true" ]; then
+            node check-tolc.js --send-test-email
           elif [ "${{ github.event.inputs.test_notification }}" = "true" ]; then
             node check-tolc.js --send-test
           else
             node check-tolc.js
           fi
 
-      - name: Commit state.json if changed
+      - name: Commit watcher state if changed
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add state.json
-          if git diff --cached --quiet -- state.json; then
-            echo "state.json unchanged; nothing to commit"
+          if [ -f telegram-queue.json ]; then git add telegram-queue.json; fi
+          if [ -f email-queue.json ]; then git add email-queue.json; fi
+          if git diff --cached --quiet; then
+            echo "No state changes; nothing to commit"
           else
             git commit -m "chore: update tolc-watch state"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
             git push
           fi

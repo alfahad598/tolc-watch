@@ -11,6 +11,13 @@ process.env.TELEGRAM_NOTIFICATIONS_ENABLED = 'true';
 process.env.TELEGRAM_TEST_FAST = '1';
 process.env.TELEGRAM_QUEUE_FILE = './.test-telegram-queue.json';
 
+// Keep this suite offline: never send real email from the Telegram tests.
+process.env.SMTP_USER = '';
+process.env.SMTP_PASSWORD = '';
+process.env.EMAIL_RECIPIENTS = '';
+process.env.EMAIL_QUEUE_FILE = './.test-email-queue.json';
+process.env.EMAIL_LOCK_FILE = './.test-email-queue.lock';
+
 const URL = 'https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
 const QUEUE_FILE = '.test-telegram-queue.json';
 const LOCK_FILE = 'telegram-queue.lock';
@@ -219,6 +226,17 @@ await test('duplicate release notification is suppressed', async () => {
   assert.strictEqual(fetchCalls.length, firstCallCount, 'no extra API calls for duplicate');
 });
 
+await test('force resends an already-delivered release', async () => {
+  resetQueue();
+  fetchCalls.length = 0;
+  fetchHandler = () => okJson();
+  await sendTelegram({ title: 'Force', message: 'm', url: URL });
+  const firstCount = fetchCalls.length;
+  const ok = await sendTelegram({ title: 'Force', message: 'm', url: URL, force: true });
+  assert.ok(ok);
+  assert.strictEqual(fetchCalls.length, firstCount * 2, 'force sends to every recipient again');
+});
+
 // ---- Queue recovery (simulates restart) ----
 await test('processTelegramQueue retries pending entries after restart', async () => {
   resetQueue();
@@ -245,6 +263,19 @@ await test('processTelegramQueue retries pending entries after restart', async (
   const data = JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf8'));
   assert.strictEqual(fetchCalls.length, 1);
   assert.strictEqual(data.entries[0].recipients[0].status, 'sent');
+});
+
+await test('stale lock is recovered instead of blocking delivery', async () => {
+  resetQueue();
+  fetchCalls.length = 0;
+  fetchHandler = () => okJson();
+  fs.writeFileSync(LOCK_FILE, JSON.stringify({ pid: 1, startedAt: new Date(0).toISOString() }));
+  const old = new Date(Date.now() - 11 * 60 * 1000);
+  fs.utimesSync(LOCK_FILE, old, old);
+  const ok = await sendTelegram({ title: 'Stale lock', message: 'm', url: URL });
+  assert.ok(ok, 'delivery should proceed after clearing the stale lock');
+  assert.strictEqual(fetchCalls.length, 2);
+  assert.ok(!fs.existsSync(LOCK_FILE), 'lock released after delivery');
 });
 
 // ---- Integration with existing sendNotification pipeline ----

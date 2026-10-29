@@ -4,8 +4,9 @@ dotenv.config();
 import { load } from 'cheerio';
 import { createHash } from 'crypto';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { sendNotification } from './notify.js';
+import { sendNotification, hasNotificationProvider } from './notify.js';
 import { processTelegramQueue } from './telegram.js';
+import { processEmailQueue, sendTestEmail } from './email.js';
 
 const URL = 'https://testcisia.it/calendario.php?tolc=cents&lingua=inglese';
 const START_MARKER = 'CALENDARIO ISCRIZIONI APERTE';
@@ -24,7 +25,9 @@ const args = process.argv.slice(2);
 const isTest = args.includes('--test');
 const isForceAlert = args.includes('--force-alert');
 const isSendTest = args.includes('--send-test');
+const isSendTestEmail = args.includes('--send-test-email');
 const isStatusAlert = args.includes('--status-alert');
+const isDryRun = args.includes('--dry-run');
 
 function log(...msg) {
   console.log(`[${new Date().toISOString()}]`, ...msg);
@@ -100,20 +103,31 @@ The monitored exam schedule is now available.
 ${preview}`;
 }
 
+function changeMessage(text, changeTitle) {
+  return `📝 WEBSITE CHANGED — ${changeTitle}
+
+The monitored calendar page has changed.
+
+🔗 Official Website: ${URL}
+🕒 Detected: ${dhakaTime()}
+
+${text.slice(0, MAX_TEXT_PREVIEW)}`;
+}
+
 function testMessage() {
-  return `✅ TOIC WATCH IS ACTIVE!
+  return `✅ TOLC WATCH IS ACTIVE!
 
 🔍 Website monitoring initialized.
-⏱️ Checking interval: Every 1 minute.
+⏱️ Checking interval: Every 5 minutes.
 📡 GitHub Actions: Working.
-🔔 Telegram Notifications: Connected.
+🔔 Notifications: Connected.
 
 🕒 Test Time: ${dhakaTime()}`;
 }
 
 function statusMessage(text, status) {
   const preview = text.slice(0, 200);
-  return `✅ TOIC WATCH — LIVE CHECK
+  return `✅ TOLC WATCH — LIVE CHECK
 
 🌐 Website: ${URL}
 📖 Status: Website is readable (HTTP ${status})
@@ -131,14 +145,17 @@ async function recordFailure(reason) {
   if (failCount >= 6 && !failAlerted) {
     log('Consecutive failures reached 6; sending one failure alert.');
     try {
-      await sendNotification(`Watcher is failing: ${reason}`, 0, {
+      const ok = await sendNotification(`Watcher is failing: ${reason}`, 0, {
         title: 'Watcher is failing',
         url: URL,
       });
+      // Only mark as alerted once a provider actually accepted the message,
+      // otherwise keep retrying on the next failing run.
+      failAlerted = ok;
+      log(ok ? 'Failure alert sent.' : 'Failure alert failed; will retry next run.');
     } catch (err) {
       log('Failure alert send threw:', err.message);
     }
-    failAlerted = true;
   }
 
   saveState({
@@ -152,11 +169,19 @@ async function recordFailure(reason) {
 }
 
 async function main() {
+  if (isSendTestEmail) {
+    log('Sending test email...');
+    const ok = await sendTestEmail();
+    console.log(`--send-test-email: ${ok ? 'test email sent' : 'test email failed or not configured'}`);
+    process.exit(ok ? 0 : 1);
+  }
+
   if (isSendTest) {
     log('Sending test notification...');
     const ok = await sendNotification(testMessage(), 0, {
-      title: 'TOIC WATCH — test',
+      title: 'TOLC WATCH — test',
       url: URL,
+      force: true,
     });
     console.log(`--send-test: ${ok ? 'test notification sent' : 'test notification failed (no provider succeeded)'}`);
     process.exit(ok ? 0 : 1);
@@ -167,6 +192,7 @@ async function main() {
     const ok = await sendNotification(testMessage(), 0, {
       title: 'TOLC Watch — test',
       url: URL,
+      force: true,
     });
     console.log(`--test: ${ok ? 'at least one provider succeeded' : 'no provider succeeded/configured'}`);
     process.exit(ok ? 0 : 1);
@@ -175,7 +201,10 @@ async function main() {
   log('Monitoring started');
   log(`Target website checked: ${URL}`);
 
-  await processTelegramQueue();
+  if (!isDryRun) {
+    await processTelegramQueue();
+    await processEmailQueue();
+  }
 
   let status;
   let html;
@@ -217,6 +246,12 @@ async function main() {
   const hasDates = !text.includes(NO_DATES_MARKER);
   log('Release detection completed');
 
+  if (isDryRun) {
+    log(`--dry-run: HTTP ${status}, ${text.length} chars, hash ${hash.slice(0, 12)}…, hasDates=${hasDates}`);
+    log(`--dry-run: preview: ${text.slice(0, MAX_TEXT_PREVIEW)}`);
+    process.exit(0);
+  }
+
   // ---- Send live status message every run (confirms website is readable) ----
   if (isStatusAlert) {
     log('Sending live status notification...');
@@ -235,6 +270,7 @@ async function main() {
     const ok = await sendNotification(releaseMessage(text), 2, {
       title: 'TOLC Watch — forced alert',
       url: URL,
+      force: true,
     });
     console.log(`--force-alert: ${ok ? 'alert sent' : 'alert failed (no provider succeeded)'}`);
     process.exit(ok ? 0 : 1);
@@ -242,50 +278,61 @@ async function main() {
 
   // ---- compare with previous state ----
   const state = loadState();
+  const providerConfigured = hasNotificationProvider();
   let releaseDetected = false;
-  let releaseTitle = '';
+  let changeTitle = '';
 
   if (!state) {
     if (hasDates) {
       releaseDetected = true;
-      releaseTitle = 'RELEASED';
+      changeTitle = 'RELEASED';
     }
   } else if (hash !== state.hash) {
     if (!state.hasDates && hasDates) {
       releaseDetected = true;
-      releaseTitle = 'RELEASED';
+      changeTitle = 'RELEASED';
     } else if (state.hasDates && !hasDates) {
-      releaseTitle = 'Dates removed';
+      changeTitle = 'Dates removed';
     } else {
-      releaseTitle = 'Calendar changed';
+      changeTitle = 'Calendar changed';
     }
   }
 
   if (releaseDetected) {
     log('Release status: RELEASED');
     const ok = await sendNotification(releaseMessage(text), 2, {
-      title: 'TOIC Watch — Exam Schedule Released',
+      title: 'TOLC Watch — Exam Schedule Released',
       url: URL,
+      force: isForceAlert,
     });
-    if (ok) {
-      log('Notification status: SENT');
+    if (ok || !providerConfigured) {
+      log(ok ? 'Notification status: SENT' : 'Notification status: SKIPPED (no provider configured)');
       saveState({ hash, hasDates, failCount: 0, failAlerted: false, checkedAt: new Date().toISOString() });
-      log(`Release alert sent ("${releaseTitle}") and state saved.`);
+      log(`Release alert handled ("${changeTitle}") and state saved.`);
     } else {
       log('Notification status: FAILED');
-      log(`Release alert failed ("${releaseTitle}"); state.json NOT saved, will retry next run.`);
+      log(`Release alert failed ("${changeTitle}"); state.json NOT saved, will retry next run.`);
     }
-  } else if (releaseTitle) {
-    log('Release status: CHANGED (no new release)');
-    log('Notification status: SKIPPED');
-    saveState({
-      hash,
-      hasDates,
-      failCount: state ? Number(state.failCount || 0) : 0,
-      failAlerted: state ? Boolean(state.failAlerted) : false,
-      checkedAt: new Date().toISOString(),
+  } else if (changeTitle) {
+    log(`Release status: CHANGED (${changeTitle})`);
+    const ok = await sendNotification(changeMessage(text, changeTitle), 0, {
+      title: `TOLC Watch — ${changeTitle}`,
+      url: URL,
     });
-    log(`Calendar changed ("${releaseTitle}"); state saved, no alert.`);
+    if (ok || !providerConfigured) {
+      log(ok ? 'Notification status: SENT' : 'Notification status: SKIPPED (no provider configured)');
+      saveState({
+        hash,
+        hasDates,
+        failCount: state ? Number(state.failCount || 0) : 0,
+        failAlerted: state ? Boolean(state.failAlerted) : false,
+        checkedAt: new Date().toISOString(),
+      });
+      log(`Calendar change alert handled ("${changeTitle}"); state saved.`);
+    } else {
+      log('Notification status: FAILED');
+      log(`Calendar change alert failed ("${changeTitle}"); state.json NOT saved, will retry next run.`);
+    }
   } else {
     log('Release status: NOT RELEASED');
     log('Notification status: SKIPPED');

@@ -11,7 +11,7 @@ Each run fetches the server-rendered page with normal Chrome headers, strips `<s
 - **Hash changed but no date flip:** `Calendar changed` alert.
 - **Dates removed:** `Dates removed` alert.
 
-State is persisted in `state.json` (SHA-256 hash, `hasDates`, `failCount`, `failAlerted`, `checkedAt`) and compared between runs.
+State is persisted in `state.json` (SHA-256 hash, `hasDates`, `failCount`, `failAlerted`, `checkedAt`) and compared between runs. The Telegram and email delivery queues (`telegram-queue.json`, `email-queue.json`) are committed by the workflow too, so undelivered messages are retried on the next run.
 
 ## Local setup
 
@@ -25,10 +25,10 @@ npm.cmd ci
 
 # create your local secrets file
 copy .env.example .env
-# edit .env and fill in the four values
+# edit .env and fill in the values for the providers you use
 ```
 
-`state.json` is created automatically on the first run and IS tracked by git (it is not in `.gitignore`). Never commit `.env`.
+`state.json` is created automatically on the first run and IS tracked by git (it is not in `.gitignore`). `telegram-queue.json` is also tracked so the workflow can retry failed Telegram deliveries; it contains recipient chat IDs, so keep the repository private if that matters to you. `email-queue.json` is tracked too, but it never stores recipient email addresses (they are read from `EMAIL_RECIPIENTS` at send time). Never commit `.env`.
 
 ## Set environment variables and run a test (PowerShell)
 
@@ -42,6 +42,9 @@ $env:CALLMEBOT_APIKEY="your_apikey"
 $env:TELEGRAM_BOT_TOKEN="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 $env:TELEGRAM_ALLOWED_CHAT_IDS="123456789,-987654321"
 $env:TELEGRAM_NOTIFICATIONS_ENABLED=true
+$env:SMTP_USER="your.address@gmail.com"
+$env:SMTP_PASSWORD="your_gmail_app_password"
+$env:EMAIL_RECIPIENTS="email1@gmail.com,email2@gmail.com"
 ```
 
 Then send a priority 0 test message to every enabled provider:
@@ -49,6 +52,13 @@ Then send a priority 0 test message to every enabled provider:
 ```powershell
 npm.cmd run test:notify
 # or: node check-tolc.js --test
+```
+
+Send a test email only (uses the same Gmail SMTP configuration as production):
+
+```powershell
+npm.cmd run test:email
+# or: node check-tolc.js --send-test-email
 ```
 
 To make variables persistent across sessions:
@@ -65,6 +75,12 @@ node check-tolc.js
 ```
 
 Run with no secrets configured: it fetches the page, logs the extraction result, updates `state.json`, and sends no notifications. Use this to confirm the fetch/extraction works before configuring notifiers.
+
+To check fetch/extraction **without** sending notifications or touching `state.json`:
+
+```powershell
+node check-tolc.js --dry-run
+```
 
 ## Push to GitHub
 
@@ -89,14 +105,19 @@ Commit `package-lock.json` as well — the workflow installs with `npm ci`.
    - `TELEGRAM_BOT_TOKEN` (optional — Telegram notifications)
    - `TELEGRAM_ALLOWED_CHAT_IDS` (optional — comma-separated Telegram chat IDs)
    - `TELEGRAM_NOTIFICATIONS_ENABLED` (optional — `true`/`false`, default `true`)
+   - `SMTP_USER` (optional — Gmail address used to send email)
+   - `SMTP_PASSWORD` (optional — Gmail **App Password**, not your account password)
+   - `EMAIL_RECIPIENTS` (optional — comma-separated recipient addresses)
 
 ## Run the workflow manually
 
 1. On GitHub, go to **Actions** → **TOLC Watch** → **Run workflow**.
-2. Leave `force_alert` unchecked for a normal check (updates `state.json`, alerts only on changes).
+2. Leave both options unchecked for a normal check (updates `state.json`, alerts only on changes).
 3. Check **force_alert** to send one real priority-2 (emergency) alert with the current extracted text. `state.json` is not touched.
+4. Check **test_notification** to send a test message instead of checking the website.
+5. Check **test_email** to send a test email via Gmail SMTP instead of checking the website.
 
-The workflow also runs automatically on schedule `*/10 * * * *` (every 10 minutes). A final `if: always()` step commits `state.json` when it changed and leaves the job failed when the script exits 1.
+The workflow also runs automatically on schedule `*/5 * * * *`. GitHub's minimum schedule interval is 5 minutes, so faster crons are silently throttled. A final `if: always()` step commits `state.json`, `telegram-queue.json` and `email-queue.json` when they change and leaves the job failed when the script exits 1.
 
 ## Acknowledge a Pushover emergency alert
 
@@ -136,8 +157,8 @@ allowlist are notified, which keeps the watchlist private by design.
 
 To add or remove a recipient, edit `TELEGRAM_ALLOWED_CHAT_IDS` and redeploy
 (or restart the workflow). Delivery state (pending/sent/failed) is kept in
-`telegram-queue.json` and retried automatically on the next run, so nothing is
-lost after a restart.
+`telegram-queue.json`, which the workflow commits, and is retried automatically
+on the next run, so nothing is lost after a restart.
 
 ### Automatic release notifications
 
@@ -173,16 +194,49 @@ https://testcisia.it/calendario.php?tolc=cents&lingua=inglese
 - Chat IDs are validated (`^-?\d+$`) and deduplicated; arbitrary users cannot subscribe.
 - Admin/API access is not applicable: this is a single-purpose watcher with no public endpoints.
 
+## Gmail SMTP email notifications
+
+TOLC Watch can email you when a change is detected, in addition to (or instead
+of) the other notifiers. Email is sent with Nodemailer over
+`smtp.gmail.com:465` using a Gmail App Password.
+
+### Setup
+
+1. Enable 2-Step Verification on your Google account.
+2. Create an **App Password** at <https://myaccount.google.com/apppasswords>.
+3. Configure:
+   - `SMTP_USER` — the Gmail address that sends the email.
+   - `SMTP_PASSWORD` — the 16-character App Password (not your account password).
+   - `EMAIL_RECIPIENTS` — comma-separated recipients, e.g. `email1@gmail.com,email2@gmail.com`.
+4. Set them in `.env` locally or as GitHub repository secrets for the workflow.
+
+All recipients are placed in **BCC**, so they cannot see each other's addresses.
+The email is a responsive HTML message with a plain-text alternative, the
+website name, update details, the detection time in **Asia/Dhaka**, a
+"View Website Update" button and the footer "Automated Website Monitoring
+System". Untrusted page content is HTML-escaped.
+
+### Reliability
+
+- Email and Telegram are sent in parallel: one failing never blocks the other.
+- If email credentials are missing, email is skipped and monitoring continues.
+- Failed emails are stored in `email-queue.json` (committed by the workflow) and
+  retried on the next run; already-delivered emails are not resent.
+- The SMTP password is never logged and is redacted from error messages.
+
 ## Files
 
 | File | Purpose |
 | --- | --- |
 | `check-tolc.js` | Watcher: fetch, extract, compare state, alert |
-| `notify.js` | Pushover + CallMeBot + Telegram notifiers |
+| `notify.js` | Pushover + CallMeBot + Telegram + email notifiers |
 | `telegram.js` | Telegram Bot API client + persistent delivery queue |
+| `email.js` | Gmail SMTP (Nodemailer) email notifier + persistent delivery queue |
 | `state.json` | Persisted watcher state (created on first run) |
-| `telegram-queue.json` | Telegram delivery queue (pending/sent/failed; runtime only) |
-| `package.json` / `package-lock.json` | Node project, ES modules, `cheerio` dependency |
+| `telegram-queue.json` | Telegram delivery queue (pending/sent/failed; committed by the workflow) |
+| `email-queue.json` | Email delivery queue (pending/sent/failed; committed by the workflow) |
+| `test-telegram.js` / `test-email.js` | Offline test suites (`npm test`) |
+| `package.json` / `package-lock.json` | Node project, ES modules, `cheerio` + `nodemailer` dependencies |
 | `.env` | Local secrets (create from `.env.example`, never commit) |
 | `.env.example` | Template with the variable names |
 | `.github/workflows/tolc-watch.yml` | GitHub Actions: schedule + manual dispatch |
