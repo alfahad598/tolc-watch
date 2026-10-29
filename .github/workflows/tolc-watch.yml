@@ -2,7 +2,7 @@ name: TOLC Watch
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/1 * * * *'
   workflow_dispatch:
     inputs:
       force_alert:
@@ -57,7 +57,7 @@ jobs:
           elif [ "${{ github.event.inputs.test_notification }}" = "true" ]; then
             node check-tolc.js --send-test
           else
-            node check-tolc.js
+            node check-tolc.js --status-alert
           fi
 
       - name: Commit state.json if changed

@@ -24,6 +24,7 @@ const args = process.argv.slice(2);
 const isTest = args.includes('--test');
 const isForceAlert = args.includes('--force-alert');
 const isSendTest = args.includes('--send-test');
+const isStatusAlert = args.includes('--status-alert');
 
 function log(...msg) {
   console.log(`[${new Date().toISOString()}]`, ...msg);
@@ -103,11 +104,22 @@ function testMessage() {
   return `✅ TOIC WATCH IS ACTIVE!
 
 🔍 Website monitoring initialized.
-⏱️ Checking interval: Every 5 minutes.
+⏱️ Checking interval: Every 1 minute.
 📡 GitHub Actions: Working.
 🔔 Telegram Notifications: Connected.
 
 🕒 Test Time: ${dhakaTime()}`;
+}
+
+function statusMessage(text, status) {
+  const preview = text.slice(0, 200);
+  return `✅ TOIC WATCH — LIVE CHECK
+
+🌐 Website: ${URL}
+📖 Status: Website is readable (HTTP ${status})
+📄 Extracted: ${preview.length} chars
+📅 Release available: ${text.includes(NO_DATES_MARKER) ? 'No' : 'Yes'}
+🕒 Checked: ${dhakaTime()}`;
 }
 
 async function recordFailure(reason) {
@@ -205,6 +217,20 @@ async function main() {
   const hasDates = !text.includes(NO_DATES_MARKER);
   log('Release detection completed');
 
+  // ---- Send live status message every run (confirms website is readable) ----
+  if (isStatusAlert) {
+    log('Sending live status notification...');
+    const ok = await sendNotification(statusMessage(text, status), 0, {
+      title: 'TOIC WATCH — Live Check',
+      url: URL,
+    });
+    console.log(`--status-alert: ${ok ? 'status notification sent' : 'status notification failed (no provider succeeded)'}`);
+    if (!ok) {
+      process.exit(1);
+    }
+  }
+
+  // ---- --force-alert: send one real priority 2 alert, no state changes ----
   if (isForceAlert) {
     const ok = await sendNotification(releaseMessage(text), 2, {
       title: 'TOLC Watch — forced alert',
@@ -214,6 +240,7 @@ async function main() {
     process.exit(ok ? 0 : 1);
   }
 
+  // ---- compare with previous state ----
   const state = loadState();
   let releaseDetected = false;
   let releaseTitle = '';
