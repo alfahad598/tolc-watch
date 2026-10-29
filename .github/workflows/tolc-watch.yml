@@ -2,12 +2,16 @@ name: TOLC Watch
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       force_alert:
         type: boolean
         description: 'Send a real priority-2 (emergency) alert with the current extracted text'
+        default: false
+      test_notification:
+        type: boolean
+        description: 'Send a Telegram test notification to verify integration'
         default: false
 
 permissions:
@@ -20,6 +24,7 @@ concurrency:
 jobs:
   watch:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -49,6 +54,8 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.force_alert }}" = "true" ]; then
             node check-tolc.js --force-alert
+          elif [ "${{ github.event.inputs.test_notification }}" = "true" ]; then
+            node check-tolc.js --send-test
           else
             node check-tolc.js
           fi

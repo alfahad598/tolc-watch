@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+﻿import dotenv from 'dotenv';
 dotenv.config();
 
 import { load } from 'cheerio';
@@ -14,6 +14,7 @@ const NO_DATES_MARKER = 'Nessuna data disponibile';
 const STATE_FILE = 'state.json';
 const MIN_TEXT_LEN = 50;
 const MAX_TEXT_PREVIEW = 500;
+const FETCH_TIMEOUT_MS = 30000;
 
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
@@ -22,6 +23,7 @@ const ACCEPT_LANGUAGE = 'en-US,en;q=0.9';
 const args = process.argv.slice(2);
 const isTest = args.includes('--test');
 const isForceAlert = args.includes('--force-alert');
+const isSendTest = args.includes('--send-test');
 
 function log(...msg) {
   console.log(`[${new Date().toISOString()}]`, ...msg);
@@ -31,8 +33,19 @@ function sha256(text) {
   return createHash('sha256').update(text, 'utf8').digest('hex');
 }
 
-// Remove script/style tags, take body text, collapse whitespace.
-// If both markers exist, slice the text between them.
+function dhakaTime() {
+  return new Date().toLocaleString('en-US', {
+    timeZone: 'Asia/Dhaka',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+}
+
 function extractText(html) {
   const $ = load(html);
   $('script, style').remove();
@@ -46,7 +59,6 @@ function extractText(html) {
   return text;
 }
 
-// Return a human-readable failure reason, or null when the page looks fine.
 function blockPageReason(status, html) {
   if (status !== 200) return `HTTP status ${status}`;
   const lower = (html || '').toLowerCase();
@@ -75,8 +87,29 @@ function messageFromText(text) {
   return `${text.slice(0, MAX_TEXT_PREVIEW)}\n\n${URL}`;
 }
 
-// Persist an incremental failure. Exit code 1. Used by normal runs only
-// (--test / --force-alert must not touch state.json).
+function releaseMessage(text) {
+  const preview = text.slice(0, MAX_TEXT_PREVIEW);
+  return `🚨 EXAM SCHEDULE RELEASED!
+
+The monitored exam schedule is now available.
+
+🔗 Official Website: ${URL}
+🕒 Detected: ${dhakaTime()}
+
+${preview}`;
+}
+
+function testMessage() {
+  return `✅ TOIC WATCH IS ACTIVE!
+
+🔍 Website monitoring initialized.
+⏱️ Checking interval: Every 5 minutes.
+📡 GitHub Actions: Working.
+🔔 Telegram Notifications: Connected.
+
+🕒 Test Time: ${dhakaTime()}`;
+}
+
 async function recordFailure(reason) {
   log('ERROR:', reason);
   const prev = loadState() || {};
@@ -93,7 +126,7 @@ async function recordFailure(reason) {
     } catch (err) {
       log('Failure alert send threw:', err.message);
     }
-    failAlerted = true; // send ONE failure alert, do not retry it every run
+    failAlerted = true;
   }
 
   saveState({
@@ -107,68 +140,73 @@ async function recordFailure(reason) {
 }
 
 async function main() {
-  // ---- flags that never touch state.json ----
+  if (isSendTest) {
+    log('Sending test notification...');
+    const ok = await sendNotification(testMessage(), 0, {
+      title: 'TOIC WATCH — test',
+      url: URL,
+    });
+    console.log(`--send-test: ${ok ? 'test notification sent' : 'test notification failed (no provider succeeded)'}`);
+    process.exit(ok ? 0 : 1);
+  }
+
   if (isTest) {
-    const ok = await sendNotification(
-      'TOLC Watch test notification — this is only a test.',
-      0,
-      { title: 'TOLC Watch test', url: URL, force: true },
-    );
+    log('Running legacy test notification...');
+    const ok = await sendNotification(testMessage(), 0, {
+      title: 'TOLC Watch — test',
+      url: URL,
+    });
     console.log(`--test: ${ok ? 'at least one provider succeeded' : 'no provider succeeded/configured'}`);
     process.exit(ok ? 0 : 1);
   }
 
-  // ---- retry pending Telegram notifications (crash / restart recovery) ----
+  log('Monitoring started');
+  log(`Target website checked: ${URL}`);
+
   await processTelegramQueue();
 
-  // ---- fetch the page ----
   let status;
   let html;
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     const res = await fetch(URL, {
       headers: {
         'User-Agent': USER_AGENT,
         'Accept-Language': ACCEPT_LANGUAGE,
       },
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     status = res.status;
     html = await res.text();
+    log(`HTTP response received: status ${status}`);
   } catch (err) {
-    if (isForceAlert) {
-      console.error('ERROR: fetch failed:', err.message);
-      process.exit(1);
-    }
+    log('HTTP response received: FAILED (network error)');
     await recordFailure(`network error: ${err.message}`);
     return;
   }
 
   const reason = blockPageReason(status, html);
   if (reason) {
-    if (isForceAlert) {
-      console.error('ERROR:', reason);
-      process.exit(1);
-    }
+    log('HTTP response received: BLOCKED (' + reason + ')');
     await recordFailure(reason);
     return;
   }
 
-  // ---- extract ----
   const text = extractText(html);
   if (!text || text.length < MIN_TEXT_LEN) {
-    if (isForceAlert) {
-      console.error(`ERROR: extraction empty or too short (${text ? text.length : 0} chars)`);
-      process.exit(1);
-    }
+    log('Release detection completed: EXTRACTION FAILED (text too short or empty)');
     await recordFailure(`extraction empty or too short (${text ? text.length : 0} chars)`);
     return;
   }
 
   const hash = sha256(text);
   const hasDates = !text.includes(NO_DATES_MARKER);
+  log('Release detection completed');
 
-  // ---- --force-alert: send one real priority 2 alert, no state changes ----
   if (isForceAlert) {
-    const ok = await sendNotification(messageFromText(text), 2, {
+    const ok = await sendNotification(releaseMessage(text), 2, {
       title: 'TOLC Watch — forced alert',
       url: URL,
     });
@@ -176,41 +214,43 @@ async function main() {
     process.exit(ok ? 0 : 1);
   }
 
-  // ---- normal run ----
   const state = loadState();
-  let alertNeeded = false;
-  let title = '';
+  let releaseDetected = false;
+  let releaseTitle = '';
 
   if (!state) {
-    // First run: alert only if dates are already available.
     if (hasDates) {
-      alertNeeded = true;
-      title = 'DATES RELEASED';
+      releaseDetected = true;
+      releaseTitle = 'RELEASED';
     }
   } else if (hash !== state.hash) {
-    alertNeeded = true;
     if (!state.hasDates && hasDates) {
-      title = 'DATES RELEASED';
+      releaseDetected = true;
+      releaseTitle = 'RELEASED';
     } else if (state.hasDates && !hasDates) {
-      title = 'Dates removed';
+      releaseTitle = 'Dates removed';
     } else {
-      title = 'Calendar changed';
+      releaseTitle = 'Calendar changed';
     }
   }
 
-  if (alertNeeded) {
-    const priority = title === 'DATES RELEASED' ? 2 : 0;
-    const ok = await sendNotification(messageFromText(text), priority, { title, url: URL });
+  if (releaseDetected) {
+    log('Release status: RELEASED');
+    const ok = await sendNotification(releaseMessage(text), 2, {
+      title: 'TOIC Watch — Exam Schedule Released',
+      url: URL,
+    });
     if (ok) {
-      // Save state only after at least one notifier succeeded.
+      log('Notification status: SENT');
       saveState({ hash, hasDates, failCount: 0, failAlerted: false, checkedAt: new Date().toISOString() });
-      log(`Alert sent ("${title}") and state saved.`);
+      log(`Release alert sent ("${releaseTitle}") and state saved.`);
     } else {
-      // Do not save state: the alert is retried on the next run.
-      log(`Alert failed ("${title}"); state.json NOT saved, will retry next run.`);
+      log('Notification status: FAILED');
+      log(`Release alert failed ("${releaseTitle}"); state.json NOT saved, will retry next run.`);
     }
-  } else {
-    // No alert needed: just update checkedAt, keep hash/hasDates/fail counters.
+  } else if (releaseTitle) {
+    log('Release status: CHANGED (no new release)');
+    log('Notification status: SKIPPED');
     saveState({
       hash,
       hasDates,
@@ -218,9 +258,21 @@ async function main() {
       failAlerted: state ? Boolean(state.failAlerted) : false,
       checkedAt: new Date().toISOString(),
     });
-    log('No alert needed. checkedAt updated.');
+    log(`Calendar changed ("${releaseTitle}"); state saved, no alert.`);
+  } else {
+    log('Release status: NOT RELEASED');
+    log('Notification status: SKIPPED');
+    saveState({
+      hash,
+      hasDates,
+      failCount: state ? Number(state.failCount || 0) : 0,
+      failAlerted: state ? Boolean(state.failAlerted) : false,
+      checkedAt: new Date().toISOString(),
+    });
+    log('No release detected. State saved.');
   }
 
+  log('Monitoring completed');
   process.exit(0);
 }
 
