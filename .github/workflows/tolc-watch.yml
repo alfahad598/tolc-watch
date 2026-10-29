@@ -11,8 +11,8 @@ on:
         default: false
       test_notification:
         type: boolean
-        description: 'Send a Telegram test notification to verify integration'
-        default: false
+        description: 'Send a Telegram test notification on every run (default: enabled for testing)'
+        default: true
 
 permissions:
   contents: write
@@ -57,7 +57,7 @@ jobs:
           elif [ "${{ github.event.inputs.test_notification }}" = "true" ]; then
             node check-tolc.js --send-test
           else
-            node check-tolc.js --status-alert
+            node check-tolc.js
           fi
 
       - name: Commit state.json if changed
