@@ -2,6 +2,7 @@
 dotenv.config();
 
 import { load } from 'cheerio';
+import { detectCalendarEvent } from './calendar-events.js';
 import { createHash } from 'crypto';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { sendNotification, hasNotificationProvider } from './notify.js';
@@ -159,6 +160,7 @@ async function recordFailure(reason) {
   }
 
   saveState({
+    ...prev,
     hash: prev.hash || null,
     hasDates: Boolean(prev.hasDates),
     failCount,
@@ -279,35 +281,21 @@ async function main() {
   // ---- compare with previous state ----
   const state = loadState();
   const providerConfigured = hasNotificationProvider();
-  let releaseDetected = false;
-  let changeTitle = '';
-
-  if (!state) {
-    if (hasDates) {
-      releaseDetected = true;
-      changeTitle = 'RELEASED';
-    }
-  } else if (hash !== state.hash) {
-    if (!state.hasDates && hasDates) {
-      releaseDetected = true;
-      changeTitle = 'RELEASED';
-    } else if (state.hasDates && !hasDates) {
-      changeTitle = 'Dates removed';
-    } else {
-      changeTitle = 'Calendar changed';
-    }
-  }
+  const event = detectCalendarEvent(state, { hash, hasDates });
+  const releaseDetected = event?.kind === 'released';
+  const changeTitle = event?.title || '';
+  const revision = event?.revision ?? state?.revision ?? 0;
 
   if (releaseDetected) {
     log('Release status: RELEASED');
     const ok = await sendNotification(releaseMessage(text), 2, {
       title: 'TOLC Watch — Exam Schedule Released',
       url: URL,
-      force: isForceAlert,
+      eventId: event.id,
     });
     if (ok || !providerConfigured) {
       log(ok ? 'Notification status: SENT' : 'Notification status: SKIPPED (no provider configured)');
-      saveState({ hash, hasDates, failCount: 0, failAlerted: false, checkedAt: new Date().toISOString() });
+      saveState({ revision, hash, hasDates, failCount: 0, failAlerted: false, checkedAt: new Date().toISOString() });
       log(`Release alert handled ("${changeTitle}") and state saved.`);
     } else {
       log('Notification status: FAILED');
@@ -318,14 +306,16 @@ async function main() {
     const ok = await sendNotification(changeMessage(text, changeTitle), 0, {
       title: `TOLC Watch — ${changeTitle}`,
       url: URL,
+      eventId: event.id,
     });
     if (ok || !providerConfigured) {
       log(ok ? 'Notification status: SENT' : 'Notification status: SKIPPED (no provider configured)');
       saveState({
+        revision,
         hash,
         hasDates,
-        failCount: state ? Number(state.failCount || 0) : 0,
-        failAlerted: state ? Boolean(state.failAlerted) : false,
+        failCount: 0,
+        failAlerted: false,
         checkedAt: new Date().toISOString(),
       });
       log(`Calendar change alert handled ("${changeTitle}"); state saved.`);
@@ -334,16 +324,17 @@ async function main() {
       log(`Calendar change alert failed ("${changeTitle}"); state.json NOT saved, will retry next run.`);
     }
   } else {
-    log('Release status: NOT RELEASED');
+    log(hasDates ? 'Release status: AVAILABLE (unchanged)' : 'Release status: NOT RELEASED');
     log('Notification status: SKIPPED');
     saveState({
+      revision,
       hash,
       hasDates,
-      failCount: state ? Number(state.failCount || 0) : 0,
-      failAlerted: state ? Boolean(state.failAlerted) : false,
+      failCount: 0,
+      failAlerted: false,
       checkedAt: new Date().toISOString(),
     });
-    log('No release detected. State saved.');
+    log('No calendar change detected. State saved.');
   }
 
   log('Monitoring completed');

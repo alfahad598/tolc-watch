@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node check-tolc.js",
-    "test": "node test-telegram.js && node test-email.js",
+    "test": "node test-calendar-events.js && node test-telegram.js && node test-email.js",
     "test:notify": "node check-tolc.js --test",
     "test:email": "node check-tolc.js --send-test-email"
   },

@@ -370,7 +370,7 @@ async function deliver(entry) {
  * had already been sent). Never throws.
  */
 export async function sendEmail(options = {}) {
-  const { title = 'TOLC Watch', message = '', url = '', force = false } = options;
+  const { title = 'TOLC Watch', message = '', url = '', force = false, eventId } = options;
 
   if (!emailEnabled()) {
     log('Email not configured (SMTP_USER / SMTP_PASSWORD / EMAIL_RECIPIENTS); skipping.');
@@ -379,7 +379,7 @@ export async function sendEmail(options = {}) {
 
   try {
     const dedupeKey = createHash('sha256')
-      .update(`${title}\0${message}\0${url}`, 'utf8')
+      .update(eventId ? `event\0${eventId}\0${url}` : `${title}\0${message}\0${url}`, 'utf8')
       .digest('hex');
 
     const queue = loadQueue();

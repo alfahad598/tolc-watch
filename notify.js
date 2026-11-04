@@ -90,7 +90,7 @@ export function hasNotificationProvider() {
 
 // Send to all enabled providers in parallel. Returns true if at least one succeeded.
 export async function sendNotification(text, priority, options = {}) {
-  const { title = 'TOLC Watch', url, force = false } = options;
+  const { title = 'TOLC Watch', url, force = false, eventId } = options;
   const calls = [];
   if (pushoverEnabled()) {
     calls.push(sendPushover({ title, message: text, url, priority }));
@@ -99,10 +99,10 @@ export async function sendNotification(text, priority, options = {}) {
     calls.push(sendCallmebot({ text }));
   }
   if (telegramEnabled()) {
-    calls.push(sendTelegram({ title, message: text, url, priority, force }));
+    calls.push(sendTelegram({ title, message: text, url, priority, force, eventId }));
   }
   if (emailEnabled()) {
-    calls.push(sendEmail({ title, message: text, url, force }));
+    calls.push(sendEmail({ title, message: text, url, force, eventId }));
   }
 
   if (calls.length === 0) {

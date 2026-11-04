@@ -11,6 +11,13 @@ Each run fetches the server-rendered page with normal Chrome headers, strips `<s
 - **Hash changed but no date flip:** `Calendar changed` alert.
 - **Dates removed:** `Dates removed` alert.
 
+Monitoring continues after the first release: every detected schedule update sends
+another notification, while unchanged checks stay silent. Each change has a
+persistent revision and event ID, so Telegram/email retries reuse the same alert
+even when its detection-time text changes. A schedule removed and released again,
+or a return to an earlier schedule, gets a fresh notification. Changes are detected
+on the next successful scheduled check; changes between checks may not be seen.
+
 State is persisted in `state.json` (SHA-256 hash, `hasDates`, `failCount`, `failAlerted`, `checkedAt`) and compared between runs. The Telegram and email delivery queues (`telegram-queue.json`, `email-queue.json`) are committed by the workflow too, so undelivered messages are retried on the next run.
 
 ## Local setup

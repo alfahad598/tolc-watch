@@ -263,9 +263,9 @@ function buildTelegramMessage({ title = 'TOLC Watch', message = '', url = '' }) 
   return lines.join('\n');
 }
 
-function makeDedupeKey({ title, message, url }) {
+function makeDedupeKey({ title, message, url, eventId }) {
   return createHash('sha256')
-    .update(`${title || ''}\0${message || ''}\0${url || ''}`, 'utf8')
+    .update(eventId ? `event\0${eventId}\0${url || ''}` : `${title || ''}\0${message || ''}\0${url || ''}`, 'utf8')
     .digest('hex');
 }
 
@@ -332,7 +332,7 @@ async function deliverEntry(entry, text, queue) {
  * Returns true if at least one recipient received the message (or it was already delivered).
  */
 export async function sendTelegram(options = {}) {
-  const { title = 'TOLC Watch', message = '', url = '', force = false } = options;
+  const { title = 'TOLC Watch', message = '', url = '', force = false, eventId } = options;
 
   if (!telegramNotificationsEnabled()) {
     log('Telegram notifications are disabled (TELEGRAM_NOTIFICATIONS_ENABLED=false).');
@@ -356,7 +356,7 @@ export async function sendTelegram(options = {}) {
   }
 
   const text = buildTelegramMessage({ title, message, url });
-  const dedupeKey = makeDedupeKey({ title, message, url });
+  const dedupeKey = makeDedupeKey({ title, message, url, eventId });
 
   const queue = loadQueue();
   let entry = queue.entries.find((e) => e.dedupeKey === dedupeKey);
