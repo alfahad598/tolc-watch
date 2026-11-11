@@ -1,8 +1,16 @@
-﻿import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 dotenv.config();
 
 import { load } from 'cheerio';
-import { detectCalendarEvent } from './calendar-events.js';
+import {
+  parseSessions,
+  toStoredSessions,
+  diffSessions,
+  hasNotifiableChange,
+  eventId,
+  sessionKey,
+  isAvailable,
+} from './calendar-events.js';
 import { createHash } from 'crypto';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { sendNotification, hasNotificationProvider } from './notify.js';
@@ -15,8 +23,9 @@ const END_MARKER = 'CISIA - Via';
 const NO_DATES_MARKER = 'Nessuna data disponibile';
 const STATE_FILE = 'state.json';
 const MIN_TEXT_LEN = 50;
-const MAX_TEXT_PREVIEW = 500;
 const FETCH_TIMEOUT_MS = 30000;
+const HEARTBEAT_MS = 60 * 60 * 1000;
+const FAIL_ALERT_THRESHOLD = 5;
 
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
@@ -88,52 +97,50 @@ function saveState(state) {
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
 }
 
-function messageFromText(text) {
-  return `${text.slice(0, MAX_TEXT_PREVIEW)}\n\n${URL}`;
+function sessionLine(s, current) {
+  const live = current?.find((c) => sessionKey(c) === sessionKey(s)) || s;
+  const seats = live.seats && live.seats !== '---' ? `${live.seats} ` : '';
+  return `📅 ${s.testDate} — ${s.university} (${s.city}), ${s.mode} — register by ${s.deadline} — ${seats}${live.status || ''}`.trim();
 }
 
-function releaseMessage(text) {
-  const preview = text.slice(0, MAX_TEXT_PREVIEW);
-  return `🚨 EXAM SCHEDULE RELEASED!
+function changeMessage(diff, current = []) {
+  const sections = [];
+  if (diff.added.length) {
+    sections.push(`🚨 NEW EXAM DATE(S) RELEASED (${diff.added.length})\n${diff.added.map((s) => sessionLine(s, current)).join('\n')}`);
+  }
+  if (diff.reopened.length) {
+    sections.push(`🟢 SEATS AVAILABLE AGAIN\n${diff.reopened.map((s) => sessionLine(s, current)).join('\n')}`);
+  }
+  if (diff.deadlineChanged.length) {
+    sections.push(`🕒 REGISTRATION DEADLINE CHANGED\n${diff.deadlineChanged.map((s) => `${sessionLine(s, current)} (was ${s.oldDeadline})`).join('\n')}`);
+  }
+  if (diff.removedEarly.length) {
+    sections.push(`❌ SESSION REMOVED BEFORE DEADLINE\n${diff.removedEarly.map((s) => sessionLine(s)).join('\n')}`);
+  }
+  return `${sections.join('\n\n')}
 
-The monitored exam schedule is now available.
-
-🔗 Official Website: ${URL}
-🕒 Detected: ${dhakaTime()}
-
-${preview}`;
-}
-
-function changeMessage(text, changeTitle) {
-  return `📝 WEBSITE CHANGED — ${changeTitle}
-
-The monitored calendar page has changed.
-
-🔗 Official Website: ${URL}
-🕒 Detected: ${dhakaTime()}
-
-${text.slice(0, MAX_TEXT_PREVIEW)}`;
+🔗 Book: ${URL}
+🕒 Detected: ${dhakaTime()}`;
 }
 
 function testMessage() {
   return `✅ TOLC WATCH IS ACTIVE!
 
 🔍 Website monitoring initialized.
-⏱️ Checking interval: Every 5 minutes.
+⏱️ Checking interval: about every 2 minutes.
 📡 GitHub Actions: Working.
 🔔 Notifications: Connected.
 
 🕒 Test Time: ${dhakaTime()}`;
 }
 
-function statusMessage(text, status) {
-  const preview = text.slice(0, 200);
+function statusMessage(sessions, status) {
+  const open = sessions.filter(isAvailable).length;
   return `✅ TOLC WATCH — LIVE CHECK
 
 🌐 Website: ${URL}
 📖 Status: Website is readable (HTTP ${status})
-📄 Extracted: ${preview.length} chars
-📅 Release available: ${text.includes(NO_DATES_MARKER) ? 'No' : 'Yes'}
+📅 Sessions listed: ${sessions.length} (${open} with seats available)
 🕒 Checked: ${dhakaTime()}`;
 }
 
@@ -143,8 +150,8 @@ async function recordFailure(reason) {
   const failCount = Number(prev.failCount || 0) + 1;
   let failAlerted = Boolean(prev.failAlerted);
 
-  if (failCount >= 6 && !failAlerted) {
-    log('Consecutive failures reached 6; sending one failure alert.');
+  if (failCount >= FAIL_ALERT_THRESHOLD && !failAlerted) {
+    log('Consecutive failures reached threshold; sending one failure alert.');
     try {
       const ok = await sendNotification(`Watcher is failing: ${reason}`, 0, {
         title: 'Watcher is failing',
@@ -244,97 +251,91 @@ async function main() {
     return;
   }
 
-  const hash = sha256(text);
-  const hasDates = !text.includes(NO_DATES_MARKER);
-  log('Release detection completed');
+  const sessions = parseSessions(html);
+  const noDatesShown = text.includes(NO_DATES_MARKER);
+  if (sessions === null && !noDatesShown) {
+    log('Release detection completed: CALENDAR TABLE NOT FOUND (page layout may have changed)');
+    await recordFailure('calendar table not found and no "no dates" notice; page layout may have changed');
+    return;
+  }
+  const currentSessions = sessions || [];
+  const hasDates = currentSessions.length > 0;
+  const hash = sha256(JSON.stringify(toStoredSessions(currentSessions)));
+  log(`Release detection completed: ${currentSessions.length} session(s) listed`);
 
   if (isDryRun) {
     log(`--dry-run: HTTP ${status}, ${text.length} chars, hash ${hash.slice(0, 12)}…, hasDates=${hasDates}`);
-    log(`--dry-run: preview: ${text.slice(0, MAX_TEXT_PREVIEW)}`);
+    for (const s of currentSessions) log(`--dry-run: ${sessionLine(s)}`);
     process.exit(0);
   }
 
-  // ---- Send live status message every run (confirms website is readable) ----
+  // ---- Send live status message (confirms website is readable) ----
   if (isStatusAlert) {
     log('Sending live status notification...');
-    const ok = await sendNotification(statusMessage(text, status), 0, {
-      title: 'TOIC WATCH — Live Check',
+    const ok = await sendNotification(statusMessage(currentSessions, status), 0, {
+      title: 'TOLC WATCH — Live Check',
       url: URL,
     });
     console.log(`--status-alert: ${ok ? 'status notification sent' : 'status notification failed (no provider succeeded)'}`);
-    if (!ok) {
-      process.exit(1);
-    }
+    if (!ok) process.exit(1);
   }
 
   // ---- --force-alert: send one real priority 2 alert, no state changes ----
   if (isForceAlert) {
-    const ok = await sendNotification(releaseMessage(text), 2, {
-      title: 'TOLC Watch — forced alert',
-      url: URL,
-      force: true,
-    });
+    const ok = await sendNotification(
+      changeMessage({ added: currentSessions, reopened: [], deadlineChanged: [], removedEarly: [] }),
+      2,
+      { title: 'TOLC Watch — forced alert', url: URL, force: true },
+    );
     console.log(`--force-alert: ${ok ? 'alert sent' : 'alert failed (no provider succeeded)'}`);
     process.exit(ok ? 0 : 1);
   }
 
   // ---- compare with previous state ----
-  const state = loadState();
-  const providerConfigured = hasNotificationProvider();
-  const event = detectCalendarEvent(state, { hash, hasDates });
-  const releaseDetected = event?.kind === 'released';
-  const changeTitle = event?.title || '';
-  const revision = event?.revision ?? state?.revision ?? 0;
+  const state = loadState() || {};
+  // Migration from the old whole-page-hash state: if dates were already being
+  // shown, adopt the current sessions as the baseline instead of re-alerting.
+  const previousSessions = state.sessions ?? (state.hasDates ? toStoredSessions(currentSessions) : {});
+  const diff = diffSessions(previousSessions, currentSessions);
+  const notify = hasNotifiableChange(diff);
+  let revision = Number(state.revision || 0);
 
-  if (releaseDetected) {
-    log('Release status: RELEASED');
-    const ok = await sendNotification(releaseMessage(text), 2, {
-      title: 'TOLC Watch — Exam Schedule Released',
+  for (const s of diff.soldOut) log(`Sold out (silent): ${sessionLine(s)}`);
+  for (const s of diff.removedExpired) log(`Registration closed and removed (silent): ${sessionLine(s)}`);
+
+  const nextState = () => {
+    const changed = state.hash !== hash || state.revision !== revision || state.failCount;
+    const last = Date.parse(state.checkedAt || 0) || 0;
+    // Only refresh the heartbeat hourly so the looping workflow doesn't commit every check.
+    const checkedAt =
+      changed || Date.now() - last > HEARTBEAT_MS ? new Date().toISOString() : state.checkedAt;
+    return { revision, hash, hasDates, sessions: diff.current, failCount: 0, failAlerted: false, checkedAt };
+  };
+
+  if (notify) {
+    revision += 1;
+    const priority = diff.added.length ? 2 : diff.reopened.length ? 1 : 0;
+    const title = diff.added.length
+      ? 'TOLC Watch — NEW exam date released'
+      : diff.reopened.length
+        ? 'TOLC Watch — Seats available again'
+        : 'TOLC Watch — Schedule changed';
+    log(`Release status: CHANGED (${title}) — added ${diff.added.length}, reopened ${diff.reopened.length}, deadline ${diff.deadlineChanged.length}, removed ${diff.removedEarly.length}`);
+    const ok = await sendNotification(changeMessage(diff, currentSessions), priority, {
+      title,
       url: URL,
-      eventId: event.id,
+      eventId: eventId(revision, diff),
     });
-    if (ok || !providerConfigured) {
+    if (ok || !hasNotificationProvider()) {
       log(ok ? 'Notification status: SENT' : 'Notification status: SKIPPED (no provider configured)');
-      saveState({ revision, hash, hasDates, failCount: 0, failAlerted: false, checkedAt: new Date().toISOString() });
-      log(`Release alert handled ("${changeTitle}") and state saved.`);
+      saveState(nextState());
     } else {
-      log('Notification status: FAILED');
-      log(`Release alert failed ("${changeTitle}"); state.json NOT saved, will retry next run.`);
-    }
-  } else if (changeTitle) {
-    log(`Release status: CHANGED (${changeTitle})`);
-    const ok = await sendNotification(changeMessage(text, changeTitle), 0, {
-      title: `TOLC Watch — ${changeTitle}`,
-      url: URL,
-      eventId: event.id,
-    });
-    if (ok || !providerConfigured) {
-      log(ok ? 'Notification status: SENT' : 'Notification status: SKIPPED (no provider configured)');
-      saveState({
-        revision,
-        hash,
-        hasDates,
-        failCount: 0,
-        failAlerted: false,
-        checkedAt: new Date().toISOString(),
-      });
-      log(`Calendar change alert handled ("${changeTitle}"); state saved.`);
-    } else {
-      log('Notification status: FAILED');
-      log(`Calendar change alert failed ("${changeTitle}"); state.json NOT saved, will retry next run.`);
+      log('Notification status: FAILED; state.json NOT saved, will retry next run.');
     }
   } else {
-    log(hasDates ? 'Release status: AVAILABLE (unchanged)' : 'Release status: NOT RELEASED');
+    log(hasDates ? 'Release status: NO NEW SESSIONS' : 'Release status: NOT RELEASED');
     log('Notification status: SKIPPED');
-    saveState({
-      revision,
-      hash,
-      hasDates,
-      failCount: 0,
-      failAlerted: false,
-      checkedAt: new Date().toISOString(),
-    });
-    log('No calendar change detected. State saved.');
+    saveState(nextState());
   }
 
   log('Monitoring completed');

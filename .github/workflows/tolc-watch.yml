@@ -2,12 +2,16 @@ name: TOLC Watch
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    # GitHub delays or drops scheduled runs heavily (gaps of 4-7 hours were
+    # observed with */5), so each run loops for ~5h45m checking every 2 minutes.
+    # These triggers only restart the loop; a trigger that fires while a loop is
+    # running waits in the queue and starts as soon as the loop ends.
+    - cron: '7,37 * * * *'
   workflow_dispatch:
     inputs:
       force_alert:
         type: boolean
-        description: 'Send a real priority-2 (emergency) alert with the current extracted text'
+        description: 'Send a real priority-2 (emergency) alert listing the current sessions'
         default: false
       test_notification:
         type: boolean
@@ -28,7 +32,7 @@ concurrency:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 358
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,8 +49,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Run TOLC watch
-        id: watch
         env:
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
@@ -58,22 +66,51 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
+          FORCE_ALERT: ${{ github.event.inputs.force_alert }}
+          TEST_EMAIL: ${{ github.event.inputs.test_email }}
+          TEST_NOTIFICATION: ${{ github.event.inputs.test_notification }}
+          LOOP_MINUTES: '345'
+          INTERVAL_SECONDS: '120'
         run: |
-          if [ "${{ github.event.inputs.force_alert }}" = "true" ]; then
+          commit_state() {
+            git add state.json
+            if [ -f telegram-queue.json ]; then git add telegram-queue.json; fi
+            if [ -f email-queue.json ]; then git add email-queue.json; fi
+            if ! git diff --cached --quiet; then
+              git commit -q -m "chore: update tolc-watch state"
+            fi
+            # Nothing new locally (including no earlier unpushed commit): done.
+            if [ -z "$(git log "origin/$GITHUB_REF_NAME..HEAD" --oneline)" ]; then return 0; fi
+            for attempt in 1 2 3; do
+              # During a rebase "theirs" is our local commit, so our fresh state wins.
+              if git pull -q --rebase -X theirs origin "$GITHUB_REF_NAME" && git push -q; then
+                return 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              sleep 5
+            done
+            echo "::warning::Could not push state; will retry after the next check"
+          }
+
+          if [ "$FORCE_ALERT" = "true" ]; then
             node check-tolc.js --force-alert
-          elif [ "${{ github.event.inputs.test_email }}" = "true" ]; then
+          elif [ "$TEST_EMAIL" = "true" ]; then
             node check-tolc.js --send-test-email
-          elif [ "${{ github.event.inputs.test_notification }}" = "true" ]; then
+          elif [ "$TEST_NOTIFICATION" = "true" ]; then
             node check-tolc.js --send-test
           else
-            node check-tolc.js
+            end=$((SECONDS + LOOP_MINUTES * 60))
+            while :; do
+              node check-tolc.js || echo "::warning::Check failed (tracked in state.json failCount)"
+              commit_state
+              if [ "$SECONDS" -ge "$end" ]; then break; fi
+              sleep "$INTERVAL_SECONDS"
+            done
           fi
 
       - name: Commit watcher state if changed
         if: always()
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add state.json
           if [ -f telegram-queue.json ]; then git add telegram-queue.json; fi
           if [ -f email-queue.json ]; then git add email-queue.json; fi
@@ -81,6 +118,6 @@ jobs:
             echo "No state changes; nothing to commit"
           else
             git commit -m "chore: update tolc-watch state"
-            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git pull --rebase -X theirs origin "$GITHUB_REF_NAME"
             git push
           fi

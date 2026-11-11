@@ -4,21 +4,24 @@ Watches https://testcisia.it/calendario.php?tolc=cents&lingua=inglese and alerts
 
 ## How it works
 
-Each run fetches the server-rendered page with normal Chrome headers, strips `<script>`/`<style>` tags, collapses whitespace, and extracts the calendar section between `CALENDARIO ISCRIZIONI APERTE` and `CISIA - Via`.
+Each check fetches the page with normal Chrome headers and parses the calendar table row by row. Each row is one exam session, identified by mode + university + city + test date. The checker compares sessions with the previous check (stored in `state.json`) and alerts on:
 
-- **No dates yet:** the page contains `Nessuna data disponibile CEnT-S 2026` → no alert.
-- **Dates released:** that phrase disappears → `DATES RELEASED` alert (Pushover priority 2: retries every 60s for up to 1 hour until acknowledged).
-- **Hash changed but no date flip:** `Calendar changed` alert.
-- **Dates removed:** `Dates removed` alert.
+| Change | Alert |
+| --- | --- |
+| New exam date / session appears | 🚨 priority 2 (Pushover emergency, repeats until acknowledged) |
+| A sold-out session has seats again | 🟢 priority 1 |
+| Registration deadline of a session changes | 🕒 priority 0 |
+| Session disappears before its registration deadline | ❌ priority 0 |
 
-Monitoring continues after the first release: every detected schedule update sends
-another notification, while unchanged checks stay silent. Each change has a
-persistent revision and event ID, so Telegram/email retries reuse the same alert
-even when its detection-time text changes. A schedule removed and released again,
-or a return to an earlier schedule, gets a fresh notification. Changes are detected
-on the next successful scheduled check; changes between checks may not be seen.
+These changes are logged but do **not** alert, because they happen all the time and used to cause false "schedule updated" alerts: seat counts going up or down, a session selling out, and a session disappearing after its registration deadline has passed.
 
-State is persisted in `state.json` (SHA-256 hash, `hasDates`, `failCount`, `failAlerted`, `checkedAt`) and compared between runs. The Telegram and email delivery queues (`telegram-queue.json`, `email-queue.json`) are committed by the workflow too, so undelivered messages are retried on the next run.
+If the page has neither a calendar table nor the `Nessuna data disponibile` notice, the layout has probably changed: the check counts as a failure, and after 5 consecutive failures you get one "Watcher is failing" alert.
+
+### Check frequency
+
+GitHub delays or drops scheduled runs heavily (gaps of 4–7 hours were observed with a `*/5` cron). So each workflow run loops for about 5h45m, checking every 2 minutes, and commits `state.json` only when something changed (plus an hourly `checkedAt` heartbeat). The cron (`7,37 * * * *`) only restarts the loop; a trigger that fires while a loop is running waits in the queue. This uses a lot of Actions minutes, which is free for public repositories only.
+
+Undelivered Telegram/email messages are kept in `telegram-queue.json` / `email-queue.json` and retried on the next check.
 
 ## Local setup
 
@@ -120,11 +123,11 @@ Commit `package-lock.json` as well — the workflow installs with `npm ci`.
 
 1. On GitHub, go to **Actions** → **TOLC Watch** → **Run workflow**.
 2. Leave both options unchecked for a normal check (updates `state.json`, alerts only on changes).
-3. Check **force_alert** to send one real priority-2 (emergency) alert with the current extracted text. `state.json` is not touched.
+3. Check **force_alert** to send one real priority-2 (emergency) alert listing the current sessions. `state.json` is not touched.
 4. Check **test_notification** to send a test message instead of checking the website.
 5. Check **test_email** to send a test email via Gmail SMTP instead of checking the website.
 
-The workflow also runs automatically on schedule `*/5 * * * *`. GitHub's minimum schedule interval is 5 minutes, so faster crons are silently throttled. A final `if: always()` step commits `state.json`, `telegram-queue.json` and `email-queue.json` when they change and leaves the job failed when the script exits 1.
+A normal run (scheduled, or manual with all options unchecked) keeps checking every 2 minutes for about 5h45m; see "Check frequency" above. A final `if: always()` step commits `state.json`, `telegram-queue.json` and `email-queue.json` when they change and leaves the job failed when the script exits 1.
 
 ## Acknowledge a Pushover emergency alert
 
