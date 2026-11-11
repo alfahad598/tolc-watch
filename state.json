@@ -1,8 +1,82 @@
 {
   "revision": 20,
-  "hash": "8d4584e1fbcaac4dd16fc95d05b9aa786696b046b77ae02078a3fc8e60b57e86",
+  "hash": "6d09045e10c296ccbebf3d6dec3acb1b34ef38e4b0b8423343087ef86e586065",
   "hasDates": true,
+  "sessions": {
+    "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
+      "mode": "CENT@UNI",
+      "university": "Universita' degli studi di Trieste",
+      "city": "TRIESTE",
+      "deadline": "20/11/2026",
+      "testDate": "26/11/2026",
+      "status": "POSTI DISPONIBILI"
+    },
+    "CENT@UNI|UNIVERSITA' DEGLI STUDI DI MESSINA|MESSINA|26/11/2026": {
+      "mode": "CENT@UNI",
+      "university": "Universita' degli studi di Messina",
+      "city": "MESSINA",
+      "deadline": "20/11/2026",
+      "testDate": "26/11/2026",
+      "status": "POSTI DISPONIBILI"
+    },
+    "CENT@CASA|SAPIENZA UNIVERSITÀ DI ROMA|ROMA|26/11/2026": {
+      "mode": "CENT@CASA",
+      "university": "Sapienza Università di Roma",
+      "city": "ROMA",
+      "deadline": "20/11/2026",
+      "testDate": "26/11/2026",
+      "status": "POSTI ESAURITI"
+    },
+    "CENT@CASA|POLITECNICO DI MILANO|MILANO|26/11/2026": {
+      "mode": "CENT@CASA",
+      "university": "Politecnico di Milano",
+      "city": "MILANO",
+      "deadline": "20/11/2026",
+      "testDate": "26/11/2026",
+      "status": "POSTI ESAURITI"
+    },
+    "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI PADOVA|PADOVA|26/11/2026": {
+      "mode": "CENT@CASA",
+      "university": "Università degli studi di Padova",
+      "city": "PADOVA",
+      "deadline": "20/11/2026",
+      "testDate": "26/11/2026",
+      "status": "POSTI ESAURITI"
+    },
+    "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI TERAMO|TERAMO|26/11/2026": {
+      "mode": "CENT@CASA",
+      "university": "Università degli studi di Teramo",
+      "city": "TERAMO",
+      "deadline": "20/11/2026",
+      "testDate": "26/11/2026",
+      "status": "POSTI ESAURITI"
+    },
+    "CENT@CASA|UNIVERSITÀ CA' FOSCARI VENEZIA|VENEZIA|26/11/2026": {
+      "mode": "CENT@CASA",
+      "university": "Università Ca' Foscari Venezia",
+      "city": "VENEZIA",
+      "deadline": "20/11/2026",
+      "testDate": "26/11/2026",
+      "status": "POSTI ESAURITI"
+    },
+    "CENT@UNI|UNIVERSITA' DEGLI STUDI DI MESSINA|MESSINA|17/12/2026": {
+      "mode": "CENT@UNI",
+      "university": "Universita' degli studi di Messina",
+      "city": "MESSINA",
+      "deadline": "11/12/2026",
+      "testDate": "17/12/2026",
+      "status": "POSTI DISPONIBILI"
+    },
+    "CENT@UNI|POLITECNICO DI TORINO|TORINO|12/01/2027": {
+      "mode": "CENT@UNI",
+      "university": "Politecnico di Torino",
+      "city": "TORINO",
+      "deadline": "06/01/2027",
+      "testDate": "12/01/2027",
+      "status": "POSTI ESAURITI"
+    }
+  },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-11T10:49:17.590Z"
+  "checkedAt": "2026-11-11T11:54:48.380Z"
 }
