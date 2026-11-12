@@ -1,6 +1,6 @@
 {
   "revision": 21,
-  "hash": "f069014f11a64541e1b5e5ffec0240c6029d30609dadbc11579999ab8339f395",
+  "hash": "6d09045e10c296ccbebf3d6dec3acb1b34ef38e4b0b8423343087ef86e586065",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -41,7 +41,7 @@
       "city": "PADOVA",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI DISPONIBILI"
+      "status": "POSTI ESAURITI"
     },
     "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI TERAMO|TERAMO|26/11/2026": {
       "mode": "CENT@CASA",
@@ -78,5 +78,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-12T09:45:09.726Z"
+  "checkedAt": "2026-11-12T10:15:27.761Z"
 }
