@@ -27,6 +27,20 @@
       "attempts": 1,
       "lastError": null,
       "sentAt": "2026-10-29T10:42:59.753Z"
+    },
+    {
+      "id": "85c8ef1eefb53930",
+      "dedupeKey": "3ebe185314426898aaef6bb214dbc3f022b055871ca62d4e40e315bec45f0c1f",
+      "title": "TOLC WATCH — test",
+      "message": "✅ TOLC WATCH IS ACTIVE!\n\n🔍 Website monitoring initialized.\n⏱️ Checking interval: about every 2 minutes.\n📡 GitHub Actions: Working.\n🔔 Notifications: Connected.\n\n🕒 Test Time: 11/14/2026, 17:47:15",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "detectedAt": "2026-11-14T11:47:15.029Z",
+      "createdAt": "2026-11-14T11:47:15.029Z",
+      "updatedAt": "2026-11-14T11:47:15.913Z",
+      "status": "sent",
+      "attempts": 1,
+      "lastError": null,
+      "sentAt": "2026-11-14T11:47:15.913Z"
     }
   ]
 }
