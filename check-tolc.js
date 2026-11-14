@@ -146,6 +146,9 @@ function statusMessage(sessions, status) {
 
 async function recordFailure(reason) {
   log('ERROR:', reason);
+  if (isDryRun) {
+    process.exit(1);
+  }
   const prev = loadState() || {};
   const failCount = Number(prev.failCount || 0) + 1;
   let failAlerted = Boolean(prev.failAlerted);
@@ -217,9 +220,9 @@ async function main() {
 
   let status;
   let html;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     const res = await fetch(URL, {
       headers: {
         'User-Agent': USER_AGENT,
@@ -227,7 +230,6 @@ async function main() {
       },
       signal: controller.signal,
     });
-    clearTimeout(timeoutId);
     status = res.status;
     html = await res.text();
     log(`HTTP response received: status ${status}`);
@@ -235,6 +237,8 @@ async function main() {
     log('HTTP response received: FAILED (network error)');
     await recordFailure(`network error: ${err.message}`);
     return;
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   const reason = blockPageReason(status, html);
@@ -331,6 +335,7 @@ async function main() {
       saveState(nextState());
     } else {
       log('Notification status: FAILED; state.json NOT saved, will retry next run.');
+      process.exit(1);
     }
   } else {
     log(hasDates ? 'Release status: NO NEW SESSIONS' : 'Release status: NOT RELEASED');
