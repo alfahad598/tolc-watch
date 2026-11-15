@@ -41,6 +41,20 @@
       "attempts": 1,
       "lastError": null,
       "sentAt": "2026-11-14T11:47:15.913Z"
+    },
+    {
+      "id": "01185d83bac426da",
+      "dedupeKey": "b5cf2db4a78ec57ab5cf7196568f8f132be99d3cc25c201dae293416b8111657",
+      "title": "Watcher is failing",
+      "message": "Watcher is failing: network error: This operation was aborted",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "detectedAt": "2026-11-15T17:48:22.078Z",
+      "createdAt": "2026-11-15T17:48:22.078Z",
+      "updatedAt": "2026-11-15T17:48:23.586Z",
+      "status": "sent",
+      "attempts": 1,
+      "lastError": null,
+      "sentAt": "2026-11-15T17:48:23.585Z"
     }
   ]
 }

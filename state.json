@@ -84,7 +84,7 @@
       "status": "POSTI ESAURITI"
     }
   },
-  "failCount": 4,
-  "failAlerted": false,
-  "checkedAt": "2026-11-15T17:45:50.557Z"
+  "failCount": 5,
+  "failAlerted": true,
+  "checkedAt": "2026-11-15T17:48:23.586Z"
 }
