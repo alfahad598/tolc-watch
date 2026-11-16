@@ -91,6 +91,33 @@
           "lastError": null
         }
       ]
+    },
+    {
+      "id": "d35069bfd027bb52",
+      "dedupeKey": "60cb356bed648b1f28273c3bf7592615136fc21a85918fd9cb308c9fe6e11f0e",
+      "title": "TOLC Watch — Seats available again",
+      "message": "🟢 SEATS AVAILABLE AGAIN\n📅 26/11/2026 — Università degli studi di Padova (PADOVA), CENT@CASA — register by 20/11/2026 — 90 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/16/2026, 19:00:18",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "createdAt": "2026-11-16T13:00:18.544Z",
+      "updatedAt": "2026-11-16T13:00:19.989Z",
+      "recipients": [
+        {
+          "chatId": "9227567042",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-16T13:00:19.347Z",
+          "sentAt": "2026-11-16T13:00:19.347Z",
+          "lastError": null
+        },
+        {
+          "chatId": "6415733001",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-16T13:00:19.989Z",
+          "sentAt": "2026-11-16T13:00:19.989Z",
+          "lastError": null
+        }
+      ]
     }
   ]
 }
