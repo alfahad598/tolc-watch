@@ -125,6 +125,20 @@
       "attempts": 1,
       "lastError": null,
       "sentAt": "2026-11-19T13:25:23.717Z"
+    },
+    {
+      "id": "8ba7baea15dba006",
+      "dedupeKey": "a6516a128daa35933664f42f0e6e06914dde168cd10bb911a329c2578c7fb2d5",
+      "title": "TOLC Watch — Seats available again",
+      "message": "🟢 SEATS AVAILABLE AGAIN\n📅 26/11/2026 — Politecnico di Milano (MILANO), CENT@CASA — register by 20/11/2026 — 2 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/19/2026, 23:19:37",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "detectedAt": "2026-11-19T17:19:37.897Z",
+      "createdAt": "2026-11-19T17:19:37.897Z",
+      "updatedAt": "2026-11-19T17:19:39.191Z",
+      "status": "sent",
+      "attempts": 1,
+      "lastError": null,
+      "sentAt": "2026-11-19T17:19:39.190Z"
     }
   ]
 }

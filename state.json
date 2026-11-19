@@ -1,6 +1,6 @@
 {
-  "revision": 29,
-  "hash": "423db1ba3b6ea5c12f30728c7b86fdd05c57093a107ce8305d165651b88e5088",
+  "revision": 30,
+  "hash": "7a5c432419c6e8f862e3bb3455c70e23f3c558ba9eb8d1cb963ee2560ec71790",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -25,7 +25,7 @@
       "city": "ROMA",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI DISPONIBILI"
+      "status": "POSTI ESAURITI"
     },
     "CENT@CASA|POLITECNICO DI MILANO|MILANO|26/11/2026": {
       "mode": "CENT@CASA",
@@ -33,7 +33,7 @@
       "city": "MILANO",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "ISCRIZIONI CHIUSE"
+      "status": "POSTI DISPONIBILI"
     },
     "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI PADOVA|PADOVA|26/11/2026": {
       "mode": "CENT@CASA",
@@ -94,5 +94,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-19T13:25:24.330Z"
+  "checkedAt": "2026-11-19T17:19:39.273Z"
 }
