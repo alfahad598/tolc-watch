@@ -1,6 +1,6 @@
 {
-  "revision": 27,
-  "hash": "80f76e5af26c547556dd3e1dda126847fbf6d1b6f609560761aa94af4de1858d",
+  "revision": 28,
+  "hash": "c86c5a11b458d10cd832e80ec6ad0ede8bbde03d818aaf0e3f013bb8c4ab4b0f",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -33,7 +33,7 @@
       "city": "MILANO",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI ESAURITI"
+      "status": "ISCRIZIONI CHIUSE"
     },
     "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI PADOVA|PADOVA|26/11/2026": {
       "mode": "CENT@CASA",
@@ -41,7 +41,7 @@
       "city": "PADOVA",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI ESAURITI"
+      "status": "POSTI DISPONIBILI"
     },
     "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI TERAMO|TERAMO|26/11/2026": {
       "mode": "CENT@CASA",
@@ -57,7 +57,7 @@
       "city": "VENEZIA",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI ESAURITI"
+      "status": "POSTI DISPONIBILI"
     },
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI MESSINA|MESSINA|17/12/2026": {
       "mode": "CENT@UNI",
@@ -94,5 +94,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-19T08:38:40.927Z"
+  "checkedAt": "2026-11-19T08:52:51.634Z"
 }
