@@ -83,6 +83,20 @@
       "attempts": 1,
       "lastError": null,
       "sentAt": "2026-11-16T14:00:56.432Z"
+    },
+    {
+      "id": "76244d3183c68f68",
+      "dedupeKey": "c02c90cceb4057620580b331731166b579bd2620d574d96190246e7a1f56ddba",
+      "title": "TOLC Watch — NEW exam date released",
+      "message": "🚨 NEW EXAM DATE(S) RELEASED (1)\n📅 17/12/2026 — Politecnico di Milano (MILANO), CENT@CASA — register by 11/12/2026 — 121 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/19/2026, 14:38:38",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "detectedAt": "2026-11-19T08:38:38.607Z",
+      "createdAt": "2026-11-19T08:38:38.607Z",
+      "updatedAt": "2026-11-19T08:38:39.449Z",
+      "status": "sent",
+      "attempts": 1,
+      "lastError": null,
+      "sentAt": "2026-11-19T08:38:39.449Z"
     }
   ]
 }

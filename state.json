@@ -1,6 +1,6 @@
 {
-  "revision": 26,
-  "hash": "451bfb47a8e7d25d941f261bc5849d80b1518069186d785d4b9bc02564d92713",
+  "revision": 27,
+  "hash": "80f76e5af26c547556dd3e1dda126847fbf6d1b6f609560761aa94af4de1858d",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -75,6 +75,14 @@
       "testDate": "17/12/2026",
       "status": "POSTI ESAURITI"
     },
+    "CENT@CASA|POLITECNICO DI MILANO|MILANO|17/12/2026": {
+      "mode": "CENT@CASA",
+      "university": "Politecnico di Milano",
+      "city": "MILANO",
+      "deadline": "11/12/2026",
+      "testDate": "17/12/2026",
+      "status": "POSTI DISPONIBILI"
+    },
     "CENT@UNI|POLITECNICO DI TORINO|TORINO|12/01/2027": {
       "mode": "CENT@UNI",
       "university": "Politecnico di Torino",
@@ -86,5 +94,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-19T07:52:12.983Z"
+  "checkedAt": "2026-11-19T08:38:40.927Z"
 }
