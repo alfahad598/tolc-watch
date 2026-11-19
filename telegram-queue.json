@@ -199,6 +199,33 @@
           "lastError": null
         }
       ]
+    },
+    {
+      "id": "74b5e03ef9aa32f5",
+      "dedupeKey": "aec7b442e7d63ab4a4240290c25fb5675360121bdbfd8512a99c7646281e3a4b",
+      "title": "TOLC Watch — Seats available again",
+      "message": "🟢 SEATS AVAILABLE AGAIN\n📅 26/11/2026 — Sapienza Università di Roma (ROMA), CENT@CASA — register by 20/11/2026 — 16 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/19/2026, 19:25:22",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "createdAt": "2026-11-19T13:25:22.755Z",
+      "updatedAt": "2026-11-19T13:25:24.314Z",
+      "recipients": [
+        {
+          "chatId": "9227567042",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-19T13:25:23.516Z",
+          "sentAt": "2026-11-19T13:25:23.516Z",
+          "lastError": null
+        },
+        {
+          "chatId": "6415733001",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-19T13:25:24.314Z",
+          "sentAt": "2026-11-19T13:25:24.314Z",
+          "lastError": null
+        }
+      ]
     }
   ]
 }
