@@ -253,6 +253,33 @@
           "lastError": null
         }
       ]
+    },
+    {
+      "id": "c24ac3b15cea2b3f",
+      "dedupeKey": "a5800f498936d12b1359091bca38773ddd3b94096cc43fe86cd4e8718d4a99f4",
+      "title": "TOLC Watch — Seats available again",
+      "message": "🟢 SEATS AVAILABLE AGAIN\n📅 26/11/2026 — Università Ca' Foscari Venezia (VENEZIA), CENT@CASA — register by 20/11/2026 — 1 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/20/2026, 01:57:23",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "createdAt": "2026-11-19T19:57:23.048Z",
+      "updatedAt": "2026-11-19T19:57:24.353Z",
+      "recipients": [
+        {
+          "chatId": "9227567042",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-19T19:57:23.712Z",
+          "sentAt": "2026-11-19T19:57:23.712Z",
+          "lastError": null
+        },
+        {
+          "chatId": "6415733001",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-19T19:57:24.353Z",
+          "sentAt": "2026-11-19T19:57:24.353Z",
+          "lastError": null
+        }
+      ]
     }
   ]
 }
