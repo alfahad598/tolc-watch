@@ -1,6 +1,6 @@
 {
   "revision": 31,
-  "hash": "7bbc2f283942bb6c1e4cb303bc81aae297cbddb52519c5de86e96e24a0352afd",
+  "hash": "6c1197426d8a48d8d4793450cac738e11d7b803e02676e8ec340ef44e5c3b18e",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -9,7 +9,7 @@
       "city": "TRIESTE",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI DISPONIBILI"
+      "status": "ISCRIZIONI CONCLUSE"
     },
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI MESSINA|MESSINA|26/11/2026": {
       "mode": "CENT@UNI",
@@ -17,7 +17,7 @@
       "city": "MESSINA",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI DISPONIBILI"
+      "status": "ISCRIZIONI CONCLUSE"
     },
     "CENT@CASA|SAPIENZA UNIVERSITÀ DI ROMA|ROMA|26/11/2026": {
       "mode": "CENT@CASA",
@@ -25,7 +25,7 @@
       "city": "ROMA",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI ESAURITI"
+      "status": "ISCRIZIONI CONCLUSE"
     },
     "CENT@CASA|POLITECNICO DI MILANO|MILANO|26/11/2026": {
       "mode": "CENT@CASA",
@@ -33,7 +33,7 @@
       "city": "MILANO",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI ESAURITI"
+      "status": "ISCRIZIONI CONCLUSE"
     },
     "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI PADOVA|PADOVA|26/11/2026": {
       "mode": "CENT@CASA",
@@ -41,7 +41,7 @@
       "city": "PADOVA",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI ESAURITI"
+      "status": "ISCRIZIONI CONCLUSE"
     },
     "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI TERAMO|TERAMO|26/11/2026": {
       "mode": "CENT@CASA",
@@ -49,7 +49,7 @@
       "city": "TERAMO",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI ESAURITI"
+      "status": "ISCRIZIONI CONCLUSE"
     },
     "CENT@CASA|UNIVERSITÀ CA' FOSCARI VENEZIA|VENEZIA|26/11/2026": {
       "mode": "CENT@CASA",
@@ -57,7 +57,7 @@
       "city": "VENEZIA",
       "deadline": "20/11/2026",
       "testDate": "26/11/2026",
-      "status": "POSTI ESAURITI"
+      "status": "ISCRIZIONI CONCLUSE"
     },
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI MESSINA|MESSINA|17/12/2026": {
       "mode": "CENT@UNI",
@@ -94,5 +94,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-20T12:04:49.617Z"
+  "checkedAt": "2026-11-20T16:03:54.578Z"
 }
