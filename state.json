@@ -1,6 +1,6 @@
 {
-  "revision": 31,
-  "hash": "6c1197426d8a48d8d4793450cac738e11d7b803e02676e8ec340ef44e5c3b18e",
+  "revision": 32,
+  "hash": "abc6a86b678749f5013db80520e863a00a61b28ba391b231e9b8d787dfc7250a",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -81,7 +81,7 @@
       "city": "MILANO",
       "deadline": "11/12/2026",
       "testDate": "17/12/2026",
-      "status": "POSTI ESAURITI"
+      "status": "POSTI DISPONIBILI"
     },
     "CENT@UNI|POLITECNICO DI TORINO|TORINO|12/01/2027": {
       "mode": "CENT@UNI",
@@ -94,5 +94,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-23T11:15:16.192Z"
+  "checkedAt": "2026-11-23T11:19:21.382Z"
 }
