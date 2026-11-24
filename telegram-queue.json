@@ -307,6 +307,33 @@
           "lastError": null
         }
       ]
+    },
+    {
+      "id": "be3364cf29784375",
+      "dedupeKey": "999274450abfba2140deadd8b8a45856cb91c522d3461afd4930a2ad81b45ed0",
+      "title": "TOLC Watch — Seats available again",
+      "message": "🟢 SEATS AVAILABLE AGAIN\n📅 12/01/2027 — Politecnico di Torino (TORINO), CENT@UNI — register by 06/01/2027 — 109 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/24/2026, 14:40:41",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "createdAt": "2026-11-24T08:40:41.390Z",
+      "updatedAt": "2026-11-24T08:40:42.560Z",
+      "recipients": [
+        {
+          "chatId": "9227567042",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-24T08:40:42.057Z",
+          "sentAt": "2026-11-24T08:40:42.057Z",
+          "lastError": null
+        },
+        {
+          "chatId": "6415733001",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-24T08:40:42.560Z",
+          "sentAt": "2026-11-24T08:40:42.560Z",
+          "lastError": null
+        }
+      ]
     }
   ]
 }
