@@ -1,6 +1,6 @@
 {
   "revision": 33,
-  "hash": "6968542412dbff78c6d57c05fd176823f69466531d1c420473df5cd2ef4d2196",
+  "hash": "6c1197426d8a48d8d4793450cac738e11d7b803e02676e8ec340ef44e5c3b18e",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -89,10 +89,10 @@
       "city": "TORINO",
       "deadline": "06/01/2027",
       "testDate": "12/01/2027",
-      "status": "POSTI DISPONIBILI"
+      "status": "POSTI ESAURITI"
     }
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-24T12:42:30.706Z"
+  "checkedAt": "2026-11-24T18:49:55.209Z"
 }
