@@ -334,6 +334,33 @@
           "lastError": null
         }
       ]
+    },
+    {
+      "id": "c821b5c673cea0d7",
+      "dedupeKey": "f62ea169825610ebf18ba4fe925e90043ac40fb7e13f3b850ea7643f13ba4789",
+      "title": "TOLC Watch — NEW exam date released",
+      "message": "🚨 NEW EXAM DATE(S) RELEASED (1)\n📅 17/12/2026 — Sapienza Universita' di Roma - Facolta' di Ingegneria (I3S) - Dipartimento di Scienze statistiche (ROMA), CENT@UNI — register by 11/12/2026 — 2 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/26/2026, 04:27:05",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "createdAt": "2026-11-25T22:27:05.061Z",
+      "updatedAt": "2026-11-25T22:27:06.229Z",
+      "recipients": [
+        {
+          "chatId": "9227567042",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-25T22:27:05.660Z",
+          "sentAt": "2026-11-25T22:27:05.660Z",
+          "lastError": null
+        },
+        {
+          "chatId": "6415733001",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-25T22:27:06.229Z",
+          "sentAt": "2026-11-25T22:27:06.229Z",
+          "lastError": null
+        }
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
-  "revision": 33,
-  "hash": "6c1197426d8a48d8d4793450cac738e11d7b803e02676e8ec340ef44e5c3b18e",
+  "revision": 34,
+  "hash": "ec4d256165a4e19155be41dd4b4ee44aa64df24e630a2598245c40618645626c",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -59,6 +59,14 @@
       "testDate": "26/11/2026",
       "status": "ISCRIZIONI CONCLUSE"
     },
+    "CENT@UNI|SAPIENZA UNIVERSITA' DI ROMA - FACOLTA' DI INGEGNERIA (I3S) - DIPARTIMENTO DI SCIENZE STATISTICHE|ROMA|17/12/2026": {
+      "mode": "CENT@UNI",
+      "university": "Sapienza Universita' di Roma - Facolta' di Ingegneria (I3S) - Dipartimento di Scienze statistiche",
+      "city": "ROMA",
+      "deadline": "11/12/2026",
+      "testDate": "17/12/2026",
+      "status": "POSTI DISPONIBILI"
+    },
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI MESSINA|MESSINA|17/12/2026": {
       "mode": "CENT@UNI",
       "university": "Universita' degli studi di Messina",
@@ -94,5 +102,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-25T17:43:21.632Z"
+  "checkedAt": "2026-11-25T22:27:06.230Z"
 }
