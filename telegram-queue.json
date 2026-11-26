@@ -415,6 +415,33 @@
           "lastError": null
         }
       ]
+    },
+    {
+      "id": "5a83e8e0d25b977b",
+      "dedupeKey": "4aea3dcaadb29be586dbf9f4d29264234ba0f4e8ce1e55ae8db7794181ea90d1",
+      "title": "TOLC Watch — NEW exam date released",
+      "message": "🚨 NEW EXAM DATE(S) RELEASED (1)\n📅 12/01/2027 — Sapienza Università di Roma (ROMA), CENT@CASA — register by 06/01/2027 — 16 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/26/2026, 22:17:26",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "createdAt": "2026-11-26T16:17:26.310Z",
+      "updatedAt": "2026-11-26T16:17:27.429Z",
+      "recipients": [
+        {
+          "chatId": "9227567042",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-26T16:17:26.887Z",
+          "sentAt": "2026-11-26T16:17:26.887Z",
+          "lastError": null
+        },
+        {
+          "chatId": "6415733001",
+          "status": "sent",
+          "attempts": 1,
+          "updatedAt": "2026-11-26T16:17:27.429Z",
+          "sentAt": "2026-11-26T16:17:27.429Z",
+          "lastError": null
+        }
+      ]
     }
   ]
 }
