@@ -1,64 +1,8 @@
 {
   "revision": 37,
-  "hash": "9204f752b694452ce00ce3c9277973934b6d045d1a3a7ad6e11b96e99ae9f5f0",
+  "hash": "0da4c41e400a69b62eb63294c3fe9887ba83736c2bb8dbe5c0cd84e8391b2694",
   "hasDates": true,
   "sessions": {
-    "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
-      "mode": "CENT@UNI",
-      "university": "Universita' degli studi di Trieste",
-      "city": "TRIESTE",
-      "deadline": "20/11/2026",
-      "testDate": "26/11/2026",
-      "status": "ISCRIZIONI CONCLUSE"
-    },
-    "CENT@UNI|UNIVERSITA' DEGLI STUDI DI MESSINA|MESSINA|26/11/2026": {
-      "mode": "CENT@UNI",
-      "university": "Universita' degli studi di Messina",
-      "city": "MESSINA",
-      "deadline": "20/11/2026",
-      "testDate": "26/11/2026",
-      "status": "ISCRIZIONI CONCLUSE"
-    },
-    "CENT@CASA|SAPIENZA UNIVERSITÀ DI ROMA|ROMA|26/11/2026": {
-      "mode": "CENT@CASA",
-      "university": "Sapienza Università di Roma",
-      "city": "ROMA",
-      "deadline": "20/11/2026",
-      "testDate": "26/11/2026",
-      "status": "ISCRIZIONI CONCLUSE"
-    },
-    "CENT@CASA|POLITECNICO DI MILANO|MILANO|26/11/2026": {
-      "mode": "CENT@CASA",
-      "university": "Politecnico di Milano",
-      "city": "MILANO",
-      "deadline": "20/11/2026",
-      "testDate": "26/11/2026",
-      "status": "ISCRIZIONI CONCLUSE"
-    },
-    "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI PADOVA|PADOVA|26/11/2026": {
-      "mode": "CENT@CASA",
-      "university": "Università degli studi di Padova",
-      "city": "PADOVA",
-      "deadline": "20/11/2026",
-      "testDate": "26/11/2026",
-      "status": "ISCRIZIONI CONCLUSE"
-    },
-    "CENT@CASA|UNIVERSITÀ DEGLI STUDI DI TERAMO|TERAMO|26/11/2026": {
-      "mode": "CENT@CASA",
-      "university": "Università degli studi di Teramo",
-      "city": "TERAMO",
-      "deadline": "20/11/2026",
-      "testDate": "26/11/2026",
-      "status": "ISCRIZIONI CONCLUSE"
-    },
-    "CENT@CASA|UNIVERSITÀ CA' FOSCARI VENEZIA|VENEZIA|26/11/2026": {
-      "mode": "CENT@CASA",
-      "university": "Università Ca' Foscari Venezia",
-      "city": "VENEZIA",
-      "deadline": "20/11/2026",
-      "testDate": "26/11/2026",
-      "status": "ISCRIZIONI CONCLUSE"
-    },
     "CENT@UNI|SAPIENZA UNIVERSITA' DI ROMA - FACOLTA' DI INGEGNERIA (I3S) - DIPARTIMENTO DI SCIENZE STATISTICHE|ROMA|17/12/2026": {
       "mode": "CENT@UNI",
       "university": "Sapienza Universita' di Roma - Facolta' di Ingegneria (I3S) - Dipartimento di Scienze statistiche",
@@ -110,5 +54,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-26T19:33:05.489Z"
+  "checkedAt": "2026-11-26T23:15:05.830Z"
 }
