@@ -1,6 +1,6 @@
 {
   "revision": 35,
-  "hash": "ec4d256165a4e19155be41dd4b4ee44aa64df24e630a2598245c40618645626c",
+  "hash": "a4d4cfb76173f43307cbd9e51463bd41749d19943a730acea2179e22c57e9b2f",
   "hasDates": true,
   "sessions": {
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI TRIESTE|TRIESTE|26/11/2026": {
@@ -65,7 +65,7 @@
       "city": "ROMA",
       "deadline": "11/12/2026",
       "testDate": "17/12/2026",
-      "status": "POSTI DISPONIBILI"
+      "status": "POSTI ESAURITI"
     },
     "CENT@UNI|UNIVERSITA' DEGLI STUDI DI MESSINA|MESSINA|17/12/2026": {
       "mode": "CENT@UNI",
@@ -102,5 +102,5 @@
   },
   "failCount": 0,
   "failAlerted": false,
-  "checkedAt": "2026-11-26T07:09:46.887Z"
+  "checkedAt": "2026-11-26T07:56:08.670Z"
 }
