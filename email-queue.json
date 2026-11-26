@@ -195,6 +195,20 @@
       "attempts": 1,
       "lastError": null,
       "sentAt": "2026-11-25T22:27:06.037Z"
+    },
+    {
+      "id": "831c4ea809883bef",
+      "dedupeKey": "5a9de90d903ec406df69e38100b64f7af6b12bf63264706cedb9afccadbaa939",
+      "title": "TOLC Watch — Seats available again",
+      "message": "🟢 SEATS AVAILABLE AGAIN\n📅 17/12/2026 — Sapienza Universita' di Roma - Facolta' di Ingegneria (I3S) - Dipartimento di Scienze statistiche (ROMA), CENT@UNI — register by 11/12/2026 — 1 POSTI DISPONIBILI\n\n🔗 Book: https://testcisia.it/calendario.php?tolc=cents&lingua=inglese\n🕒 Detected: 11/26/2026, 12:09:17",
+      "url": "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese",
+      "detectedAt": "2026-11-26T06:09:17.718Z",
+      "createdAt": "2026-11-26T06:09:17.718Z",
+      "updatedAt": "2026-11-26T06:09:18.764Z",
+      "status": "sent",
+      "attempts": 1,
+      "lastError": null,
+      "sentAt": "2026-11-26T06:09:18.764Z"
     }
   ]
 }
